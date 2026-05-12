@@ -163,6 +163,57 @@ joystickBase.addEventListener("touchend",()=>{
     joyY = 0;
 });
 
+    /* LOOK CAMERA HP */
+let touchLook = false;
+let lastTouchX = 0;
+let lastTouchY = 0;
+
+document.addEventListener("touchstart",(e)=>{
+
+    /* kanan layar untuk kamera */
+    if(e.touches[0].clientX > window.innerWidth/2){
+
+        touchLook = true;
+
+        lastTouchX = e.touches[0].clientX;
+        lastTouchY = e.touches[0].clientY;
+    }
+
+});
+
+document.addEventListener("touchmove",(e)=>{
+
+    if(touchLook){
+
+        let touch = e.touches[0];
+
+        let moveX = touch.clientX - lastTouchX;
+        let moveY = touch.clientY - lastTouchY;
+
+        yaw -= moveX * 0.005;
+        pitch -= moveY * 0.005;
+
+        pitch = Math.max(
+            -Math.PI/2,
+            Math.min(Math.PI/2,pitch)
+        );
+
+        camera.rotation.order = "YXZ";
+        camera.rotation.y = yaw;
+        camera.rotation.x = pitch;
+
+        lastTouchX = touch.clientX;
+        lastTouchY = touch.clientY;
+    }
+
+});
+
+document.addEventListener("touchend",()=>{
+
+    touchLook = false;
+
+});
+
 /* TOMBOL LOMPAT */
 jumpBtn.addEventListener("touchstart",()=>{
 
@@ -188,14 +239,27 @@ function createBlock(x,y,z,material){
     blocks.push(mesh);
 }
 
-/* DUNIA BLOK */
-for(let x=-20;x<20;x++){
-    for(let z=-20;z<20;z++){
+/* DUNIA BESAR 100x100 */
+for(let x=-50;x<50;x++){
+    for(let z=-50;z<50;z++){
 
         createBlock(x,-1,z,textures.grass);
 
-        if(Math.random() > 0.8){
-            createBlock(x,0,z,textures.stone);
+        /* GEDUNG RANDOM */
+        if(Math.random() > 0.93){
+
+            let tinggi = Math.floor(Math.random()*8)+3;
+
+            for(let y=0;y<tinggi;y++){
+                createBlock(x,y,z,textures.stone);
+            }
+        }
+
+        /* JALAN */
+        if(x % 10 === 0 || z % 10 === 0){
+            createBlock(x,-1,z,new THREE.MeshLambertMaterial({
+                color:0x333333
+            }));
         }
     }
 }
