@@ -90,6 +90,9 @@ canvas{
 let scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb);
 
+    /* FOG BIAR RENDER JAUH LEBIH RINGAN */
+scene.fog = new THREE.Fog(0x87ceeb,20,120);
+
 let camera = new THREE.PerspectiveCamera(
     75,
     window.innerWidth/window.innerHeight,
@@ -97,7 +100,7 @@ let camera = new THREE.PerspectiveCamera(
     5000
 );
 
-let renderer = new THREE.WebGLRenderer({antialias:true});
+let renderer = new THREE.WebGLRenderer({antialias:false);
     renderer.setPixelRatio(1);
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled =false;
@@ -404,18 +407,28 @@ camera.position.add(
     }
 }
 
-/* ANIMATE */
+    /* ANIMATE */
 let lastFrame = 0;
 
 function animate(time){
 
     requestAnimationFrame(animate);
 
+    /* LIMIT 30 FPS */
     if(time - lastFrame < 1000/30) return;
 
     lastFrame = time;
 
+    /* UPDATE PLAYER */
+    movePlayer();
+
+    /* RENDER */
+    renderer.render(scene,camera);
+}
+
+/* MULAI GAME */
 animate();
+
 
 /* RESIZE */
 window.addEventListener("resize",()=>{
