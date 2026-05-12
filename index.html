@@ -94,7 +94,7 @@ let camera = new THREE.PerspectiveCamera(
     75,
     window.innerWidth/window.innerHeight,
     0.1,
-    1000
+    5000
 );
 
 let renderer = new THREE.WebGLRenderer({antialias:true});
@@ -240,13 +240,13 @@ function createBlock(x,y,z,material){
 }
 
 /* DUNIA BESAR 100x100 */
-for(let x=-50;x<50;x++){
-    for(let z=-50;z<50;z++){
+for(let x=-150;x<150;x++){
+    for(let z=-150;z<150;z++){
 
         createBlock(x,-1,z,textures.grass);
 
         /* GEDUNG RANDOM */
-        if(Math.random() > 0.93){
+        if(Math.random() > 0.985){
 
             let tinggi = Math.floor(Math.random()*8)+3;
 
@@ -329,9 +329,28 @@ document.addEventListener("mousedown",()=>{
 /* MOVEMENT */
 function movePlayer(){
 
-    /* GERAK HP */
-camera.position.x += joyX * 0.1;
-camera.position.z += joyY * 0.1;
+    /* GERAK HP SESUAI ARAH KAMERA */
+let mobileForward = new THREE.Vector3();
+camera.getWorldDirection(mobileForward);
+
+mobileForward.y = 0;
+mobileForward.normalize();
+
+let mobileRight = new THREE.Vector3();
+mobileRight.crossVectors(
+    mobileForward,
+    new THREE.Vector3(0,1,0)
+);
+
+/* MAJU MUNDUR */
+camera.position.add(
+    mobileForward.clone().multiplyScalar(-joyY * 0.15)
+);
+
+/* KIRI KANAN */
+camera.position.add(
+    mobileRight.clone().multiplyScalar(joyX * 0.15)
+);
 
     let speed = 0.08;
 
