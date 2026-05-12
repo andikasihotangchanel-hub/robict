@@ -98,8 +98,9 @@ let camera = new THREE.PerspectiveCamera(
 );
 
 let renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer.setPixelRatio(1);
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.shadowMap.enabled = true;
+renderer.shadowMap.enabled =false;
 document.body.appendChild(renderer.domElement);
 
 let light = new THREE.DirectionalLight(0xffffff,1);
@@ -228,25 +229,33 @@ const blocks = [];
 const blockSize = 1;
 
 function createBlock(x,y,z,material){
-    const geo = new THREE.BoxGeometry(blockSize,blockSize,blockSize);
+
+    const geo = new THREE.BoxGeometry(
+        blockSize,
+        blockSize,
+        blockSize
+    );
+
     const mesh = new THREE.Mesh(geo,material);
 
     mesh.position.set(x,y,z);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
+
+    /* MATIKAN SHADOW */
+    mesh.castShadow = false;
+    mesh.receiveShadow = false;
 
     scene.add(mesh);
     blocks.push(mesh);
 }
 
 /* DUNIA BESAR 100x100 */
-for(let x=-150;x<150;x++){
-    for(let z=-150;z<150;z++){
+for(let x=-80;x<80;x++){
+    for(let z=-80;z<80;z++){
 
         createBlock(x,-1,z,textures.grass);
 
         /* GEDUNG RANDOM */
-        if(Math.random() > 0.985){
+        if(Math.random() > 0.995){
 
             let tinggi = Math.floor(Math.random()*8)+3;
 
@@ -396,14 +405,15 @@ camera.position.add(
 }
 
 /* ANIMATE */
-function animate(){
+let lastFrame = 0;
+
+function animate(time){
 
     requestAnimationFrame(animate);
 
-    movePlayer();
+    if(time - lastFrame < 1000/30) return;
 
-    renderer.render(scene,camera);
-}
+    lastFrame = time;
 
 animate();
 
