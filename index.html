@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ROBICT</title>
+
+<style>
+body{
+    margin:0;
+    overflow:hidden;
+    background:#87ceeb;
+    font-family:sans-serif;
+}
+
+#ui{
+    position:fixed;
+    top:10px;
+    left:10px;
+    z-index:10;
+    color:white;
+    background:rgba(0,0,0,0.5);
+    padding:10px;
+    border-radius:10px;
+}
+
+canvas{
+    display:block;
+}
+</style>
+</head>
+<body>
+
+<div id="ui">
+    <h2>ROBICT</h2>
+    <p>WASD = Gerak</p>
+    <p>Mouse = Lihat</p>
+    <p>Click = Hancurkan blok</p>
+    <p>Space = Lompat</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+
+<script>
+let scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb);
+
+let camera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth/window.innerHeight,
+    0.1,
+    1000
+);
+
+let renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+document.body.appendChild(renderer.domElement);
+
+let light = new THREE.DirectionalLight(0xffffff,1);
+light.position.set(20,50,20);
+light.castShadow = true;
+scene.add(light);
+
+scene.add(new THREE.AmbientLight(0xffffff,0.4));
+
+/* TEXTURE WARNA */
+const textures = {
+    grass: new THREE.MeshLambertMaterial({color:0x55aa55}),
+    dirt: new THREE.MeshLambertMaterial({color:0x8b5a2b}),
+    stone: new THREE.MeshLambertMaterial({color:0x888888})
+};
+
+/* BLOK */
+const blocks = [];
+const blockSize = 1;
+
+function createBlock(x,y,z,material){
+    const geo = new THREE.BoxGeometry(blockSize,blockSize,blockSize);
+    const mesh = new THREE.Mesh(geo,material);
+
+    mesh.position.set(x,y,z);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+
+    scene.add(mesh);
+    blocks.push(mesh);
+}
+
+/* DUNIA BLOK */
+for(let x=-20;x<20;x++){
+    for(let z=-20;z<20;z++){
+
+        createBlock(x,-1,z,textures.grass);
+
+        if(Math.random() > 0.8){
+            createBlock(x,0,z,textures.stone);
+        }
+    }
+}
+
+/* PLAYER */
+camera.position.set(0,2,5);
+
+let velocityY = 0;
+let gravity = 0.01;
+let canJump = true;
+
+const keys = {};
+
+document.addEventListener("keydown",(e)=>{
+    keys[e.key.toLowerCase()] = true;
+});
+
+document.addEventListener("keyup",(e)=>{
+    keys[e.key.toLowerCase()] = false;
+});
+
+/* MOUSE LOOK */
+let yaw = 0;
+let pitch = 0;
+
+document.body.addEventListener("click",()=>{
+    document.body.requestPointerLock();
+});
+
+document.addEventListener("mousemove",(e)=>{
+    if(document.pointerLockElement === document.body){
+
+        yaw -= e.movementX * 0.002;
+        pitch -= e.movementY * 0.002;
+
+        pitch = Math.max(-Math.PI/2, Math.min(Math.PI/2,pitch));
+
+        camera.rotation.order = "YXZ";
+        camera.rotation.y = yaw;
+        camera.rotation.x = pitch;
+    }
+});
+
+/* HANCURKAN BLOK */
+const raycaster = new THREE.Raycaster();
+
+document.addEventListener("mousedown",()=>{
+
+    raycaster.setFromCamera(
+        new THREE.Vector2(0,0),
+        camera
+    );
+
+    const hits = raycaster.intersectObjects(blocks);
+
+    if(hits.length > 0){
+        scene.remove(hits[0].object);
+
+        const index = blocks.indexOf(hits[0].object);
+
+        if(index > -1){
+            blocks.splice(index,1);
+        }
+    }
+});
+
+/* MOVEMENT */
+function movePlayer(){
+
+    let speed = 0.08;
+
+    let forward = new THREE.Vector3();
+    camera.getWorldDirection(forward);
+
+    forward.y = 0;
+    forward.normalize();
+
+    let right = new THREE.Vector3();
+    right.crossVectors(forward,new THREE.Vector3(0,1,0));
+
+    if(keys["w"]){
+        camera.position.add(forward.clone().multiplyScalar(speed));
+    }
+
+    if(keys["s"]){
+        camera.position.add(forward.clone().multiplyScalar(-speed));
+    }
+
+    if(keys["a"]){
+        camera.position.add(right.clone().multiplyScalar(speed));
+    }
+
+    if(keys["d"]){
+        camera.position.add(right.clone().multiplyScalar(-speed));
+    }
+
+    /* LOMPAT */
+    velocityY -= gravity;
+    camera.position.y += velocityY;
+
+    if(camera.position.y < 2){
+        camera.position.y = 2;
+        velocityY = 0;
+        canJump = true;
+    }
+
+    if(keys[" "] && canJump){
+        velocityY = 0.2;
+        canJump = false;
+    }
+}
+
+/* ANIMATE */
+function animate(){
+
+    requestAnimationFrame(animate);
+
+    movePlayer();
+
+    renderer.render(scene,camera);
+}
+
+animate();
+
+/* RESIZE */
+window.addEventListener("resize",()=>{
+
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(window.innerWidth,window.innerHeight);
+});
+</script>
+
+</body>
+</html>
