@@ -100,7 +100,7 @@ let camera = new THREE.PerspectiveCamera(
     5000
 );
 
-let renderer = new THREE.WebGLRenderer({antialias:false);
+let renderer = new THREE.WebGLRenderer({antialias:false});
     renderer.setPixelRatio(1);
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled =false;
@@ -108,7 +108,7 @@ document.body.appendChild(renderer.domElement);
 
 let light = new THREE.DirectionalLight(0xffffff,1);
 light.position.set(20,50,20);
-light.castShadow = true;
+light.castShadow = false;
 scene.add(light);
 
 scene.add(new THREE.AmbientLight(0xffffff,0.4));
