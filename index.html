@@ -13,6 +13,43 @@ body{
     font-family:sans-serif;
 }
 
+
+#joystickBase{
+    position:fixed;
+    bottom:30px;
+    left:30px;
+    width:120px;
+    height:120px;
+    background:rgba(255,255,255,0.15);
+    border-radius:50%;
+    z-index:1000;
+    touch-action:none;
+}
+
+#joystick{
+    position:absolute;
+    width:60px;
+    height:60px;
+    background:rgba(255,255,255,0.7);
+    border-radius:50%;
+    left:30px;
+    top:30px;
+}
+    
+#jumpBtn{
+    position:fixed;
+    right:30px;
+    bottom:40px;
+    width:90px;
+    height:90px;
+    border:none;
+    border-radius:50%;
+    font-size:35px;
+    background:rgba(255,255,255,0.3);
+    color:white;
+    z-index:1000;
+}
+
 #ui{
     position:fixed;
     top:10px;
@@ -30,6 +67,14 @@ canvas{
 </style>
 </head>
 <body>
+
+    <!-- JOYSTICK HP -->
+<div id="joystickBase">
+  <div id="joystick"></div>
+</div>
+
+<!-- TOMBOL LOMPAT -->
+<button id="jumpBtn">↑</button>
 
 <div id="ui">
     <h2>ROBICT</h2>
@@ -70,6 +115,62 @@ const textures = {
     dirt: new THREE.MeshLambertMaterial({color:0x8b5a2b}),
     stone: new THREE.MeshLambertMaterial({color:0x888888})
 };
+
+    /* MOBILE JOYSTICK */
+const joystick = document.getElementById("joystick");
+const joystickBase = document.getElementById("joystickBase");
+const jumpBtn = document.getElementById("jumpBtn");
+
+let joyX = 0;
+let joyY = 0;
+
+joystickBase.addEventListener("touchmove",(e)=>{
+
+    e.preventDefault();
+
+    const touch = e.touches[0];
+
+    const rect = joystickBase.getBoundingClientRect();
+
+    const centerX = rect.left + rect.width/2;
+    const centerY = rect.top + rect.height/2;
+
+    let dx = touch.clientX - centerX;
+    let dy = touch.clientY - centerY;
+
+    const distance = Math.sqrt(dx*dx + dy*dy);
+
+    const max = 40;
+
+    if(distance > max){
+        dx = dx / distance * max;
+        dy = dy / distance * max;
+    }
+
+    joystick.style.left = (dx + 30) + "px";
+    joystick.style.top = (dy + 30) + "px";
+
+    joyX = dx / max;
+    joyY = dy / max;
+});
+
+joystickBase.addEventListener("touchend",()=>{
+
+    joystick.style.left = "30px";
+    joystick.style.top = "30px";
+
+    joyX = 0;
+    joyY = 0;
+});
+
+/* TOMBOL LOMPAT */
+jumpBtn.addEventListener("touchstart",()=>{
+
+    if(canJump){
+        velocityY = 0.2;
+        canJump = false;
+    }
+});
 
 /* BLOK */
 const blocks = [];
@@ -163,6 +264,10 @@ document.addEventListener("mousedown",()=>{
 
 /* MOVEMENT */
 function movePlayer(){
+
+    /* GERAK HP */
+camera.position.x += joyX * 0.1;
+camera.position.z += joyY * 0.1;
 
     let speed = 0.08;
 
