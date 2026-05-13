@@ -251,28 +251,156 @@ function createBlock(x,y,z,material){
     blocks.push(mesh);
 }
 
-/* DUNIA BESAR 100x100 */
+/* WARNA RUMAH PLAYER */
+const houseColors = [
+    0xff5555,
+    0xffaa00,
+    0x00cc66,
+    0xff66cc,
+    0xaa55ff,
+    0xff4444,
+    0x00ddaa
+];
+
+const playerHouseColor =
+houseColors[
+    Math.floor(Math.random()*houseColors.length)
+];
+
+const playerHouseMaterial =
+new THREE.MeshLambertMaterial({
+    color:playerHouseColor
+});
+
+/* MATERIAL GEDUNG KOTA */
+const cityMaterials = [
+    new THREE.MeshLambertMaterial({color:0x777777}),
+    new THREE.MeshLambertMaterial({color:0x222222}),
+    new THREE.MeshLambertMaterial({color:0xcccccc}),
+    new THREE.MeshLambertMaterial({color:0x4444aa})
+];
+
+/* TANAH + JALAN */
 for(let x=-80;x<80;x++){
     for(let z=-80;z<80;z++){
 
         createBlock(x,-1,z,textures.grass);
 
-        /* GEDUNG RANDOM */
-        if(Math.random() > 0.995){
-
-            let tinggi = Math.floor(Math.random()*8)+3;
-
-            for(let y=0;y<tinggi;y++){
-                createBlock(x,y,z,textures.stone);
-            }
-        }
-
         /* JALAN */
         if(x % 10 === 0 || z % 10 === 0){
-            createBlock(x,-1,z,new THREE.MeshLambertMaterial({
-                color:0x333333
-            }));
+
+            createBlock(
+                x,
+                -1,
+                z,
+                new THREE.MeshLambertMaterial({
+                    color:0x333333
+                })
+            );
         }
+    }
+}
+
+/* =========================
+   RUMAH PLAYER
+========================= */
+
+for(let x=-4;x<=4;x++){
+    for(let z=-4;z<=4;z++){
+
+        /* LANTAI */
+        createBlock(
+            x,
+            0,
+            z,
+            playerHouseMaterial
+        );
+
+        /* ATAP */
+        createBlock(
+            x,
+            4,
+            z,
+            playerHouseMaterial
+        );
+    }
+}
+
+/* DINDING */
+for(let y=1;y<4;y++){
+
+    for(let x=-4;x<=4;x++){
+
+        createBlock(x,y,-4,playerHouseMaterial);
+        createBlock(x,y,4,playerHouseMaterial);
+    }
+
+    for(let z=-4;z<=4;z++){
+
+        createBlock(-4,y,z,playerHouseMaterial);
+        createBlock(4,y,z,playerHouseMaterial);
+    }
+}
+
+/* PINTU */
+scene.remove(blocks[blocks.length-1]);
+scene.remove(blocks[blocks.length-2]);
+
+/* INTERIOR */
+
+/* MEJA */
+createBlock(0,1,0,textures.dirt);
+
+/* KURSI */
+createBlock(1,1,0,textures.stone);
+
+/* TEMPAT TIDUR */
+createBlock(-2,1,0,
+new THREE.MeshLambertMaterial({
+    color:0xff0000
+}));
+
+/* SPAWN PLAYER */
+camera.position.set(0,2,8);
+
+/* =========================
+   GEDUNG KOTA
+========================= */
+
+for(let i=0;i<120;i++){
+
+    let bx =
+    Math.floor(Math.random()*160)-80;
+
+    let bz =
+    Math.floor(Math.random()*160)-80;
+
+    /* JANGAN DEKAT RUMAH PLAYER */
+    if(
+        bx > -15 &&
+        bx < 15 &&
+        bz > -15 &&
+        bz < 15
+    ) continue;
+
+    let tinggi =
+    Math.floor(Math.random()*10)+4;
+
+    let material =
+    cityMaterials[
+        Math.floor(
+            Math.random()*cityMaterials.length
+        )
+    ];
+
+    for(let y=0;y<tinggi;y++){
+
+        createBlock(
+            bx,
+            y,
+            bz,
+            material
+        );
     }
 }
 
