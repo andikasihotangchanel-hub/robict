@@ -466,6 +466,48 @@ document.addEventListener("mousedown",()=>{
     }
 });
 
+    /* COLLISION */
+function checkCollision(x,z){
+
+    for(let block of blocks){
+
+        let bx = block.position.x;
+        let bz = block.position.z;
+        let by = block.position.y;
+
+        /* HANYA TABRAKAN BLOK ATAS TANAH */
+        if(by >= 0){
+
+            if(
+                Math.abs(x - bx) < 0.8 &&
+                Math.abs(z - bz) < 0.8
+            ){
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+/* COLLISION SYSTEM */
+function checkCollision(x,z){
+
+    /* TABRAK BLOK */
+    for(let block of blocks){
+
+        if(block.position.y >= 0){
+
+            if(
+                Math.abs(x - block.position.x) < 0.8 &&
+                Math.abs(z - block.position.z) < 0.8
+            ){
+                return true;
+            }
+        }
+    }
+
+
 /* MOVEMENT */
 function movePlayer(){
 
@@ -483,41 +525,34 @@ mobileRight.crossVectors(
 );
 
 /* MAJU MUNDUR */
-camera.position.add(
-    mobileForward.clone().multiplyScalar(-joyY * 0.15)
-);
+let nextX =
+    camera.position.x +
+    (-mobileForward.x * joyY * 0.15);
+
+let nextZ =
+    camera.position.z +
+    (-mobileForward.z * joyY * 0.15);
+
+if(!checkCollision(nextX,nextZ)){
+
+    camera.position.x = nextX;
+    camera.position.z = nextZ;
+}
 
 /* KIRI KANAN */
-camera.position.add(
-    mobileRight.clone().multiplyScalar(joyX * 0.15)
-);
+nextX =
+    camera.position.x +
+    (mobileRight.x * joyX * 0.15);
 
-    let speed = 0.08;
+nextZ =
+    camera.position.z +
+    (mobileRight.z * joyX * 0.15);
 
-    let forward = new THREE.Vector3();
-    camera.getWorldDirection(forward);
+if(!checkCollision(nextX,nextZ)){
 
-    forward.y = 0;
-    forward.normalize();
-
-    let right = new THREE.Vector3();
-    right.crossVectors(forward,new THREE.Vector3(0,1,0));
-
-    if(keys["w"]){
-        camera.position.add(forward.clone().multiplyScalar(speed));
-    }
-
-    if(keys["s"]){
-        camera.position.add(forward.clone().multiplyScalar(-speed));
-    }
-
-    if(keys["a"]){
-        camera.position.add(right.clone().multiplyScalar(speed));
-    }
-
-    if(keys["d"]){
-        camera.position.add(right.clone().multiplyScalar(-speed));
-    }
+    camera.position.x = nextX;
+    camera.position.z = nextZ;
+}
 
     /* LOMPAT */
     velocityY -= gravity;
