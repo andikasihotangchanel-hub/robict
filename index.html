@@ -84,6 +84,107 @@ canvas{
     <p>Space = Lompat</p>
 </div>
 
+    <!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+/* CONFIG FIREBASE */
+const firebaseConfig = {
+
+    apiKey: "AIzaSyCXLsN2MjwvzGn6pkqaiJRqORUznTCjWck",
+
+    authDomain: "robotik-54835.firebaseapp.com",
+
+    databaseURL: "https://robotik-54835-default-rtdb.firebaseio.com",
+
+    projectId: "robotik-54835",
+
+    storageBucket: "robotik-54835.firebasestorage.app",
+
+    messagingSenderId: "799349248134",
+
+    appId: "1:799349248134:web:fdef93e4cc0d33eba10107",
+
+    measurementId: "G-Q1SYV08LQW"
+};
+
+/* START FIREBASE */
+firebase.initializeApp(firebaseConfig);
+
+/* DATABASE */
+const db = firebase.database();
+
+/* ID PLAYER */
+const playerId =
+    "player_" +
+    Math.floor(Math.random()*999999);
+
+/* PLAYER ONLINE */
+const onlinePlayers = {};
+
+/* UPDATE POSISI PLAYER */
+function updateOnlinePlayer(){
+
+    db.ref("players/" + playerId).set({
+
+        x: camera.position.x,
+        y: camera.position.y,
+        z: camera.position.z
+    });
+}
+
+/* HAPUS PLAYER SAAT KELUAR */
+window.addEventListener("beforeunload",()=>{
+
+    db.ref("players/" + playerId).remove();
+});
+
+/* LOAD PLAYER ONLINE */
+db.ref("players").on("value",(snapshot)=>{
+
+    const data = snapshot.val();
+
+    if(!data) return;
+
+    for(let id in data){
+
+        /* SKIP PLAYER SENDIRI */
+        if(id === playerId) continue;
+
+        const p = data[id];
+
+        /* BUAT PLAYER BARU */
+        if(!onlinePlayers[id]){
+
+            const mesh = new THREE.Mesh(
+
+                new THREE.BoxGeometry(1,2,1),
+
+                new THREE.MeshLambertMaterial({
+
+                    color:Math.random()*0xffffff
+                })
+            );
+
+            mesh.position.y = 1;
+
+            scene.add(mesh);
+
+            onlinePlayers[id] = mesh;
+        }
+
+        /* UPDATE POSISI */
+        onlinePlayers[id].position.set(
+
+            p.x,
+            p.y,
+            p.z
+        );
+    }
+});
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
 
 <script>
@@ -584,6 +685,8 @@ function animate(time){
 
     /* UPDATE PLAYER */
     movePlayer();
+
+    updateOnlinePlayer();
 
     /* RENDER */
     renderer.render(scene,camera);
